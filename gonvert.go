@@ -1,3 +1,4 @@
+// Package gonvert let's you convert the empty interface type to any other data type whenever possible
 package gonvert
 
 import (
@@ -53,11 +54,11 @@ func ToInt(value interface{}) (int64, error) {
 
 	case float32, float64:
 		var float64Value float64
-		switch value.(type) {
+		switch t := value.(type) {
 		case float32:
-			float64Value = float64(value.(float32))
+			float64Value = float64(t)
 		case float64:
-			float64Value = value.(float64)
+			float64Value = t
 		}
 
 		var intValue = int64(float64Value)
@@ -65,7 +66,7 @@ func ToInt(value interface{}) (int64, error) {
 			return intValue, nil
 		}
 
-		return 0, fmt.Errorf("Cannot truncate float to int. Data loss")
+		return 0, fmt.Errorf("cannot truncate float to int. Data loss")
 
 	case string:
 		n, err := strconv.ParseInt(v, 10, 64)
