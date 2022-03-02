@@ -132,9 +132,11 @@ func ToBool(value interface{}) (bool, error) {
 }
 
 func ToSlice(value interface{}) ([]interface{}, error) {
-	switch value.(type) {
+	switch tv := value.(type) {
 	case nil:
 		return []interface{}{}, nil
+	case []interface{}:
+		return tv, nil
 	case bool, float32, float64, int, int8, int16, int32, int64, string, uint, uint8, uint16, uint32, uint64:
 		return []interface{}{value}, nil
 	default:
@@ -154,8 +156,80 @@ func ToSlice(value interface{}) ([]interface{}, error) {
 	return nil, fmt.Errorf("unsupported value type in ToSlice conversion. type = `%T`", value)
 }
 
+func ToStringSlice(value interface{}) ([]string, error) {
+	switch tv := value.(type) {
+	case nil:
+		return []string{}, nil
+	case []string:
+		return tv, nil
+	case bool, float32, float64, int, int8, int16, int32, int64, string, uint, uint8, uint16, uint32, uint64:
+		v, err := ToString(value)
+		if err != nil {
+			return nil, err
+		}
+
+		return []string{v}, nil
+	default:
+		v := reflect.ValueOf(value)
+
+		switch v.Kind() {
+		case reflect.Slice:
+			var err error
+			var res = make([]string, v.Len())
+
+			for i := 0; i < v.Len(); i++ {
+				res[i], err = ToString(v.Index(i).Interface())
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			return res, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unsupported value type in ToStringSlice conversion. type = `%T`", value)
+}
+
+func ToIntSlice(value interface{}) ([]int64, error) {
+	switch tv := value.(type) {
+	case nil:
+		return []int64{}, nil
+	case []int64:
+		return tv, nil
+	case bool, float32, float64, int, int8, int16, int32, int64, string, uint, uint8, uint16, uint32, uint64:
+		v, err := ToInt(value)
+		if err != nil {
+			return nil, err
+		}
+
+		return []int64{v}, nil
+	default:
+		v := reflect.ValueOf(value)
+
+		switch v.Kind() {
+		case reflect.Slice:
+			var err error
+			var res = make([]int64, v.Len())
+
+			for i := 0; i < v.Len(); i++ {
+				res[i], err = ToInt(v.Index(i).Interface())
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			return res, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unsupported value type in ToIntSlice conversion. type = `%T`", value)
+}
+
 func ToMapString(value interface{}) (map[string]interface{}, error) {
 	switch val := value.(type) {
+	case nil:
+		return map[string]interface{}{}, nil
 	case map[string]interface{}:
 		return val, nil
 	case map[interface{}]interface{}:
